@@ -1558,3 +1558,27 @@ function OverviewController($scope,
     }
   });
 }
+
+function isVmPod(apiObject) {
+  return apiObject.kind === 'Pod'
+    && apiObject.metadata.labels
+    && apiObject.metadata.labels['kubevirt.io'] === 'virt-launcher';
+}
+
+angular.module('openshiftConsole').filter('vmAwareKind', function() {
+  return function(apiObject) {
+    if (isVmPod(apiObject)) {
+      return 'Virtual Machine Pod';
+    }
+    return apiObject.kind;
+  }
+});
+
+angular.module('openshiftConsole').filter('vmAwareName', function() {
+  return function(apiObject) {
+    if (isVmPod(apiObject)) {
+      return apiObject.metadata.labels['kubevirt.io/domain'] || apiObject.metadata.name
+    }
+    return apiObject.metadata.name
+  }
+});

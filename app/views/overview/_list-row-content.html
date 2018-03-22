@@ -1,9 +1,9 @@
 <div class="list-pf-name">
   <h3>
     <div class="component-label">
-      {{row.apiObject.kind | humanizeKind}}
+      {{row.apiObject | vmAwareKind | humanizeKind}}
     </div>
-    <a ng-href="{{row.apiObject | navigateResourceURL}}"><span ng-bind-html="row.apiObject.metadata.name | highlightKeywords : row.state.filterKeywords"></span></a><span ng-if="row.apiObject.kind === 'DeploymentConfig' && row.current">,
+    <a ng-href="{{row.apiObject | navigateResourceURL}}"><span ng-bind-html="row.apiObject | vmAwareName | highlightKeywords : row.state.filterKeywords"></span></a><span ng-if="row.apiObject.kind === 'DeploymentConfig' && row.current">,
       <a ng-href="{{row.current | navigateResourceURL}}">#{{row.current | annotation : 'deploymentVersion'}}</a>
     </span><span ng-if="row.apiObject.kind === 'Deployment' && row.current">,
       <a ng-href="{{row.current | navigateResourceURL}}">#{{row.current | annotation : 'deployment.kubernetes.io/revision'}}</a>
