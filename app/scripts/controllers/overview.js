@@ -407,6 +407,7 @@ function OverviewController($scope,
     overview.filteredPipelineBuildConfigs = filterItems(overview.pipelineBuildConfigs);
     overview.filteredServiceInstances = filterItems(state.orderedServiceInstances);
     overview.filteredMobileClients = filterItems(overview.mobileClients);
+    overview.filteredOfflineVirtualMachines = filterItems(overview.offlineVirtualMachines);
     overview.filterActive = isFilterActive();
     updateApps();
     updateShowGetStarted();
@@ -1439,6 +1440,39 @@ function OverviewController($scope,
         updateFilter();
         Logger.log("mobileclients (subscribe)", clients);
       }, { poll: limitWatches, pollInterval: DEFAULT_POLL_INTERVAL }));
+    }
+
+    if ($scope.KUBEVIRT_ENABLED) {
+      // TODO we need to get through `vm` entity
+      var callback = function (ovms) {
+        console.log('%c ************** ovms', 'background-color: red; color: white;', ovms)
+        overview.offlineVirtualMachines = _(ovms.by('metadata.name'))
+          .values()
+          .map(function (ovm) {
+            var pod = _(overview.pods)
+              .values()
+              .filter(function (pod) { // TODO rework to component attr
+                return ovm.metadata.uid === _.get(pod, 'metadata.labels["kubevirt.io/vmUID"]')
+              })
+              .first()
+            if (pod) {
+              ovm._pod = pod;
+            }
+            return ovm;
+          })
+          .sortBy('metadata.name')
+          .value();
+        updateFilter()
+      }
+      watches.push(DataService.watch(
+        {
+          resource: "offlinevirtualmachines",
+          group: "kubevirt.io",
+          version: "v1alpha1"
+        },
+        context,
+        callback,
+        { poll: limitWatches, pollInterval: DEFAULT_POLL_INTERVAL }))
     }
 
     var fetchServiceClass, fetchServicePlan;
