@@ -43,6 +43,8 @@
     }
   }]);
 
+  var directiveCounter = 0
+
   angular.module('openshiftConsole').directive('dropdownItem', ['$compile', function ($compile) {
     return {
       restrict: 'E',
@@ -53,16 +55,18 @@
       },
       link: function ($scope, element, attrs, ctrl, transcludeFn) {
         var currentElement = element;
-        var transcludeContent = transcludeFn();
-        console.log('*************************', element[0])
+        // var transcludeContent = transcludeFn();
+        var directiveIndex = ++directiveCounter;
+        console.log('*************************', directiveIndex, element[0]);
 
         function onAttrChange() {
+          console.log('onAttrChange', directiveIndex);
           var template = $scope.enabled === 'true'
-            ? '<li class="qqq"><a ng-click="action()"></a></li>'
-            : '<li class="disabled qqq"><a ng-click="$event.stopPropagation()"></a></li>';
-          var newElement = $compile(template)($scope);
+            ? '<li class="qqq"><a ng-click="action()" ng-transclude></a></li>'
+            : '<li class="disabled qqq"><a ng-click="$event.stopPropagation()" ng-transclude></a></li>';
+          var newElement = $compile(template, transcludeFn)($scope);
           console.log('scope', $scope, $scope.action, $scope.enabled);
-          newElement.find('a').append(transcludeContent);
+          // newElement.find('a').append(transcludeContent);
           currentElement.replaceWith(newElement);
           currentElement = newElement;
         }
@@ -155,12 +159,10 @@
     }
 
     row.startOvm = function () {
-      console.log('start ovm', row.apiObject, $scope.context);
-      setOvmRunning(true).then((response) => console.log('vm started', response));
+      setOvmRunning(true);
     }
     row.stopOvm = function () {
-      console.log('stop ovm', row.apiObject, $scope.context);
-      setOvmRunning(false).then((response) => console.log('vm stopped', response));
+      setOvmRunning(false);
     }
     row.restartOvm = function () {
       return DataService.delete(
@@ -176,7 +178,9 @@
       return isOvmRunning();
     }
     row.canRestartOvm = function () {
-      return isOvmRunning() && row.apiObject._vm && _.get(row.apiObject, '_pod.status.phase') === 'Running'
+      return isOvmRunning()
+        && row.apiObject._vm
+        && _.get(row.apiObject, '_pod.status.phase') === 'Running';
     }
   }
 })();
