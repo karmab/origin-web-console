@@ -23,7 +23,7 @@
     templateUrl: 'views/overview/_virtual-machine-row.html'
   });
 
-  angular.module('openshiftConsole').directive('optionalA', ['$parse', '$compile', '$rootScope', function ($parse, $compile, $rootScope) { // TODO remove $parse
+  angular.module('openshiftConsole').directive('optionalA', ['$compile', '$rootScope', function ($compile, $rootScope) {
     return {
       // (E)lement can't be used because of bug in jQuery URI plugin
       restrict: 'A',
@@ -43,8 +43,6 @@
     }
   }]);
 
-  var directiveCounter = 0
-
   angular.module('openshiftConsole').directive('dropdownItem', ['$compile', function ($compile) {
     return {
       restrict: 'E',
@@ -55,18 +53,13 @@
       },
       link: function ($scope, element, attrs, ctrl, transcludeFn) {
         var currentElement = element;
-        // var transcludeContent = transcludeFn();
-        var directiveIndex = ++directiveCounter;
-        console.log('*************************', directiveIndex, element[0]);
 
         function onAttrChange() {
-          console.log('onAttrChange', directiveIndex);
           var template = $scope.enabled === 'true'
             ? '<li class="qqq"><a ng-click="action()" ng-transclude></a></li>'
             : '<li class="disabled qqq"><a ng-click="$event.stopPropagation()" ng-transclude></a></li>';
           var newElement = $compile(template, transcludeFn)($scope);
           console.log('scope', $scope, $scope.action, $scope.enabled);
-          // newElement.find('a').append(transcludeContent);
           currentElement.replaceWith(newElement);
           currentElement = newElement;
         }
