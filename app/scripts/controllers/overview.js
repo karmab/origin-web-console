@@ -208,7 +208,8 @@ function OverviewController($scope,
            _.size(overview.daemonSets) +
            _.size(overview.monopods) +
            _.size(overview.state.serviceInstances) +
-           _.size(overview.mobileClients);
+           _.size(overview.mobileClients) +
+           _.size(overview.offlineVirtualMachines);
   };
 
   // The size of all visible top-level items after filtering.
@@ -221,7 +222,8 @@ function OverviewController($scope,
            _.size(overview.filteredDaemonSets) +
            _.size(overview.filteredMonopods) +
            _.size(overview.filteredServiceInstances) +
-           _.size(overview.filteredMobileClients);
+           _.size(overview.filteredMobileClients) +
+           _.size(overview.filteredOfflineVirtualMachines);
   };
 
   // Show the "Get Started" message if the project is empty.

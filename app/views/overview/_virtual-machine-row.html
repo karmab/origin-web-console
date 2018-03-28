@@ -28,7 +28,7 @@
           <dropdown-item action="row.stopOvm()" enabled="{{row.canStopOvm()}}">Stop</dropdown-item>
           <li ng-if="row.OfflineVirtualMachineVersion | canI : 'delete'">
             <delete-link
-              kind="{{row.OfflineVirtualMachineVersion.resource}}"
+              kind="OfflineVirtualMachine"
               group="{{row.OfflineVirtualMachineVersion.group}}"
               stay-on-current-page="true"
               resource-name="{{row.apiObject.metadata.name}}"
