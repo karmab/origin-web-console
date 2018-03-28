@@ -395,7 +395,7 @@
               <div class="list-pf">
                 <virtual-machine-row
                   ng-repeat="ovm in overview.filteredOfflineVirtualMachines track by (ovm | uid)"
-                  ovm="ovm"
+                  api-object="ovm"
                   state="overview.state"></virtual-machine-row>
               </div>
             </div>

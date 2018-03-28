@@ -31,6 +31,7 @@ angular.module('openshiftConsole').controller('OverviewController', [
   'ResourceAlertsService',
   'RoutesService',
   'ServiceInstancesService',
+  'KubevirtVersions',
   OverviewController
 ]);
 
@@ -63,7 +64,8 @@ function OverviewController($scope,
                             PromiseUtils,
                             ResourceAlertsService,
                             RoutesService,
-                            ServiceInstancesService) {
+                            ServiceInstancesService,
+                            KubevirtVersions) {
   var overview = this;
   var limitWatches = $filter('isIE')();
   var DEFAULT_POLL_INTERVAL = 60 * 1000; // milliseconds
@@ -693,10 +695,82 @@ function OverviewController($scope,
     return true;
   };
 
+  // part of lodash since 4.0.0
+  function byKey(selector) {
+    return function (accum, item) {
+      var key = selector(item)
+      accum[key] = item;
+      return accum;
+    }
+  }
+
+  function getOvmId(vm) {
+    var ownerReferences = vm.metadata.ownerReferences;
+    if (!ownerReferences) {
+      return null;
+    }
+    return _(ownerReferences)
+      .filter(function (reference) {
+        return reference.kind === 'OfflineVirtualMachine';
+      })
+      .map(function (reference) {
+        return reference.uid;
+      })
+      .first();
+  }
+
+  function updateVirtualMachineMapping() {
+    if (!overview.offlineVirtualMachines || !overview.virtualMachines || !overview.pods) {
+      return;
+    }
+    var vmIdToPod = _(overview.pods)
+      .values()
+      .filter(function (pod) {
+        return !!_.get(pod, 'metadata.labels["kubevirt.io/vmUID"]')
+      })
+      .reduce(byKey(function (pod) {
+        return pod.metadata.labels['kubevirt.io/vmUID'];
+      }), {});
+    var ovmIdToVm = _(overview.virtualMachines)
+      .values()
+      .filter(function (vm) {
+        return !!getOvmId(vm)
+      })
+      .reduce(byKey(function (vm) {
+        return getOvmId(vm);
+      }), {});
+    var podsOfOvms = [];
+    _.forEach(overview.offlineVirtualMachines, function (ovm) {
+      var ovmId = ovm.metadata.uid;
+      var vm = ovmIdToVm[ovmId];
+      if (!vm) {
+        return;
+      }
+      ovm._vm = vm;
+      var pod = vmIdToPod[vm.metadata.uid];
+      if (!pod) {
+        return;
+      }
+      ovm._pod = pod;
+      podsOfOvms.push(pod);
+    });
+    // don't consider virt-launcher pods of offline virtual machines monopods
+    if (overview.monopods) {
+      overview.monopods = _(overview.monopods)
+        .filter(function (pod) {
+          return !_.includes(podsOfOvms, pod);
+        })
+        .reduce(byKey(function (pod) {
+          return pod.metadata.name;
+        }), {});
+    }
+  };
+
   // Group all pods by owner, tracked in the `state.podsByOwnerUID` map.
   var groupPods = function() {
     state.podsByOwnerUID = PodsService.groupByOwnerUID(overview.pods);
     overview.monopods = _.filter(state.podsByOwnerUID[''], showMonopod);
+    updateVirtualMachineMapping();
   };
 
   // Determine if a replication controller is visible, either as part of a
@@ -1230,7 +1304,7 @@ function OverviewController($scope,
   ProjectsService.get($routeParams.project, opts).then(_.spread(function(project, context) {
     // Project must be set on `$scope` for the projects dropdown.
     state.project = $scope.project = project;
-    state.context = context;
+    state.context = $scope.context = context;
 
     var updateReferencedImageStreams = function() {
       if (!overview.pods) {
@@ -1443,36 +1517,26 @@ function OverviewController($scope,
     }
 
     if ($scope.KUBEVIRT_ENABLED) {
-      // TODO we need to get through `vm` entity
-      var callback = function (ovms) {
-        console.log('%c ************** ovms', 'background-color: red; color: white;', ovms)
-        overview.offlineVirtualMachines = _(ovms.by('metadata.name'))
-          .values()
-          .map(function (ovm) {
-            var pod = _(overview.pods)
-              .values()
-              .filter(function (pod) { // TODO rework to component attr
-                return ovm.metadata.uid === _.get(pod, 'metadata.labels["kubevirt.io/vmUID"]')
-              })
-              .first()
-            if (pod) {
-              ovm._pod = pod;
-            }
-            return ovm;
-          })
-          .sortBy('metadata.name')
-          .value();
+      var ovmCallback = function (ovms) {
+        overview.offlineVirtualMachines = ovms.by('metadata.name');
+        updateVirtualMachineMapping();
         updateFilter()
-      }
+      };
       watches.push(DataService.watch(
-        {
-          resource: "offlinevirtualmachines",
-          group: "kubevirt.io",
-          version: "v1alpha1"
-        },
+        KubevirtVersions.offlineVirtualMachine,
         context,
-        callback,
-        { poll: limitWatches, pollInterval: DEFAULT_POLL_INTERVAL }))
+        ovmCallback,
+        { poll: limitWatches, pollInterval: DEFAULT_POLL_INTERVAL }));
+      var vmCallback = function (vms) {
+        overview.virtualMachines = vms.by('metadata.name');
+        updateVirtualMachineMapping();
+        updateFilter()
+      };
+      watches.push(DataService.watch(
+        KubevirtVersions.virtualMachine,
+        context,
+        vmCallback,
+        { poll: limitWatches, pollInterval: DEFAULT_POLL_INTERVAL }));
     }
 
     var fetchServiceClass, fetchServicePlan;
@@ -1601,18 +1665,18 @@ function isVmPod(apiObject) {
 
 angular.module('openshiftConsole').filter('vmAwareKind', function() {
   return function(apiObject) {
-    if (isVmPod(apiObject)) {
-      return 'Virtual Machine Pod';
-    }
+    // if (isVmPod(apiObject)) {
+    //   return 'Virtual Machine Pod';
+    // }
     return apiObject.kind;
   }
 });
 
 angular.module('openshiftConsole').filter('vmAwareName', function() {
   return function(apiObject) {
-    if (isVmPod(apiObject)) {
-      return apiObject.metadata.labels['kubevirt.io/domain'] || apiObject.metadata.name
-    }
+    // if (isVmPod(apiObject)) {
+    //   return apiObject.metadata.labels['kubevirt.io/domain'] || apiObject.metadata.name
+    // }
     return apiObject.metadata.name
   }
 });

@@ -7,10 +7,13 @@
       <div class="list-pf-name">
         <h3>
           <div class="component-label"><span>Virtual Machine</span></div>
-          <a optional-a href="{{row.ovm._pod | navigateResourceURL}}" a="{{ row }}" b="ahoj">
-            <span ng-bind-html="row.ovm.metadata.name | highlightKeywords : row.state.filterKeywords"></span>
+          <a optional-a href="{{row.apiObject._pod | navigateResourceURL}}">
+            <span ng-bind-html="row.apiObject.metadata.name | highlightKeywords : row.state.filterKeywords"></span>
           </a>
         </h3>
+      </div>
+      <div class="list-pf-details">
+        <div ng-if="!row.expanded">{{row.apiObject | vmState}}</div>
       </div>
     </div>
     <div class="list-pf-actions">
@@ -20,10 +23,13 @@
           <span class="sr-only">Actions</span>
         </button>
         <ul class="dropdown-menu dropdown-menu-right" uib-dropdown-menu role="menu">
-          <li ng-if="row.mobileclientVersion | canI : 'delete'">
+          <dropdown-item action="row.startOvm()" enabled="{{row.canStartOvm()}}">Start</dropdown-item>
+          <dropdown-item action="row.restartOvm()" enabled="{{row.canRestartOvm()}}">Restart</dropdown-item>
+          <dropdown-item action="row.stopOvm()" enabled="{{row.canStopOvm()}}">Stop</dropdown-item>
+          <li ng-if="row.OfflineVirtualMachineVersion | canI : 'delete'">
             <delete-link
-              kind="MobileClient"
-              group="mobile.k8s.io"
+              kind="{{row.OfflineVirtualMachineVersion.resource}}"
+              group="{{row.OfflineVirtualMachineVersion.group}}"
               stay-on-current-page="true"
               resource-name="{{row.apiObject.metadata.name}}"
               project-name="{{row.projectName}}">
@@ -33,22 +39,17 @@
       </div>
     </div>
   </div>
-  <!--<div class="list-pf-expansion collapse" ng-if="row.expanded" ng-class="{ in: row.expanded }">-->
-    <!--<div class="list-pf-container">-->
-      <!--<div class="expanded-section">-->
-        <!--<div class="empty-state-message text-center">-->
-          <!--<p>Add a mobile service to your project. Or connect to external service.</p>-->
-          <!--<div class="empty-state-message-main-action">-->
-            <!--&lt;!&ndash;TODO link through to the mobile category &ndash;&gt;-->
-            <!--<button class="btn btn-primary btn-lg" ng-click="row.browseCatalog()">-->
-              <!--Browse Mobile Services-->
-            <!--</button>-->
-          <!--</div>-->
-        <!--</div>-->
-        <!--<div ng-if="loading">-->
-          <!--Loading...-->
-        <!--</div>-->
-      <!--</div>-->
-    <!--</div>-->
-  <!--</div>-->
+  <div class="list-pf-expansion collapse" ng-if="row.expanded" ng-class="{ in: row.expanded }">
+    <div class="list-pf-container">
+      <div class="expanded-section">
+        <dl class="dl-horizontal">
+          <dt>State:</dt>
+          <dd>{{row.apiObject | vmState}}</dd>
+
+          <dt>Operating System:</dt>
+          <dd>{{row.apiObject.metadata.labels['kubevirt.io/os'] || '-'}}</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
 </div>

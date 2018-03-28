@@ -653,12 +653,9 @@ angular
     }
     Logger.info("AEROGEAR_MOBILE_ENABLED: " + $rootScope.AEROGEAR_MOBILE_ENABLED);
   })
-  .run(function ($rootScope, APIService) {
-    $rootScope.KUBEVIRT_ENABLED = !!APIService.apiInfo({
-      resource: "offlinevirtualmachines",
-      group: "kubevirt.io",
-      version: "v1alpha1"
-    });
-  });
+  .run(['$rootScope', 'APIService', 'KubevirtVersions',
+    function ($rootScope, APIService, KubevirtVersions) {
+    $rootScope.KUBEVIRT_ENABLED = !!APIService.apiInfo(KubevirtVersions.offlineVirtualMachine);
+  }]);
 
 hawtioPluginLoader.addModule('openshiftConsole');

@@ -75,6 +75,9 @@
           <i class="fa fa-ellipsis-v" aria-hidden="true"></i><span class="sr-only">Actions</span>
         </button>
         <ul class="dropdown-menu dropdown-menu-right" uib-dropdown-menu role="menu">
+          <li role="menuitem" ng-if="row.log()">
+            <a href="" ng-click="row.showOverlayPanel('unbindService', {target: row.apiObject})">Restart</a>
+          </li>
           <li role="menuitem" ng-if="row.isBindable && (row.serviceBindingsVersion | canI : 'create')">
             <a href="" ng-click="row.showOverlayPanel('bindService', {target: row.apiObject})">
               Create Binding
