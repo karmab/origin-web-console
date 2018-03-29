@@ -7,17 +7,9 @@
       <div class="list-pf-name">
         <h3>
           <div class="component-label"><span>Virtual Machine</span></div>
-          <!--<a optional-a href="{{row.apiObject._pod | navigateResourceURL}}">-->
-            <!--<span ng-bind-html="row.apiObject.metadata.name | highlightKeywords : row.state.filterKeywords"></span>-->
-          <!--</a>-->
-          <!--<optional-link link="{{row.apiObject._pod | navigateResourceURL}}">-->
-            <!--<span ng-bind-html="row.apiObject.metadata.name | debug : 'inside transclusion' | highlightKeywords : row.state.filterKeywords"></span>-->
-            <!--{{row.apiObject.metadata.name}}-->
-            <!--{{{ link: link, child: child, row: row} | debug : 'scope test'}}-->
-          <!--</optional-link>-->
-          <optional-link2 link="{{row.apiObject._pod | navigateResourceURL}}">
-            <span ng-bind-html="row.apiObject.metadata.name | debug : 'inside transclusion' | highlightKeywords : row.state.filterKeywords"></span>
-          </optional-link2>
+          <optional-link link="{{row.apiObject._pod | navigateResourceURL}}">
+            <span ng-bind-html="row.apiObject.metadata.name | highlightKeywords : row.state.filterKeywords"></span>
+          </optional-link>
         </h3>
       </div>
       <div class="list-pf-details">

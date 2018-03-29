@@ -23,44 +23,7 @@
     templateUrl: 'views/overview/_virtual-machine-row.html'
   });
 
-  angular.module('openshiftConsole').directive('optionalLink', ['$compile', function ($compile) {
-    return {
-      // (E)lement can't be used because of bug in jQuery URI plugin
-      restrict: 'E',
-      scope: {
-        link: '@'
-      },
-      transclude: true,
-      link: function ($scope, element, attrs, ctrl, transcludeFn) {
-        var currentElement = element;
-        $scope.child = true;
-
-        function onAttrChange() {
-          var template = $scope.link
-            ? '<a ng-href="{{link}}" ng-transclude=""></a>'
-            : '<span ng-transclude></span>';
-          var newElement = $compile(template, transcludeFn)($scope);
-          currentElement.replaceWith(newElement);
-          currentElement = newElement;
-        }
-
-        $scope.$watch('link', onAttrChange);
-
-        // if (attrs.href) {
-        //   var template = '<a ng-href="{{ href }}"></a>';
-        //   const localScope = $rootScope.$new(true);
-        //   localScope.href = attrs.href;
-        //   var aElement = $compile(template)(localScope);
-        //   aElement.append(transcludeFn());
-        //   el.replaceWith(aElement);
-        //   return;
-        // }
-        // el.replaceWith(transcludeFn());
-      }
-    }
-  }]);
-
-  angular.module('openshiftConsole').directive('optionalLink2', function () {
+  angular.module('openshiftConsole').directive('optionalLink', function () {
     return {
       restrict: 'E',
       scope: {
