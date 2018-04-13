@@ -55,9 +55,9 @@
     return '' +
       'full address:s:' + address +
       '\nserver port:i: ' + port +
-      '\ndesktopwidth:i:1024' +
-      '\ndesktopheight:i:768' +
-      '\nscreen mode id:i:1' + // set 2 for full screen
+      '\ndesktopwidth:i:0' +
+      '\ndesktopheight:i:0' +
+      '\nscreen mode id:i:2' + // set 2 for full screen
       '\nauthentication level:i:2' +
       '\nredirectclipboard:i:1' +
       '\nsession bpp:i:32' +
@@ -68,7 +68,7 @@
       '\nconnection type:i:2' +
       '\ndisplayconnectionbar:i:1' +
       '\ndisable wallpaper:i:1' +
-      '\nallow font smoothing:i:0' +
+      '\nallow font smoothing:i:1' +
       '\nallow desktop composition:i:0' +
       '\ndisable full window drag:i:1' +
       '\ndisable menu anims:i:1' +
@@ -91,6 +91,7 @@
       '\ngatewayprofileusagemethod:i:0' +
       '\npromptcredentialonce:i:1' +
       '\nuse redirection server name:i:0' +
+      '\nusername:s:Administrator' +
       '\n';
   }
 
