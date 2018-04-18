@@ -380,7 +380,7 @@
               </div>
             </div>
             <!-- Show Kubevirt Virtual Machines -->
-            <div ng-if="overview.filteredOfflineVirtualMachines | size">
+            <div ng-if="(overview.filteredOfflineVirtualMachines | size) && overview.viewBy !== 'pipeline' ">
               <h2>Virtual Machines</h2>
               <div class="list-pf">
                 <virtual-machine-row
